@@ -78,7 +78,7 @@ void getJSON(){
     message += ", \"title\": ";
     message += "\"" + gardner_name + "\"";  
     message += ", \"version\": ";
-    message += "\"" + String(VERSION_SHORT) + "\"";     
+    message += "\"" + String(VERSION) + "<br> build: " +String(BUILD_NUMBER) + "\"";     
     message += ", \"job_status\": ";
     message += "\"" + sensor_status + "\"";
     message += "}";
