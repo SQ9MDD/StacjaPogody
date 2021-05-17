@@ -110,7 +110,7 @@ const char HTTP_SETTINGS[] PROGMEM = R"=====(
                         <input class="input" name="above_sea_lvl" id="above_sea_lvl" type="number" min="0" max="8848" step="1" title="Wysokość montażu czujnika nad poziomem morza" placeholder="0">
                     </div>   
                     <div>
-                        <label for="www_pass">www password</label>
+                        <label for="www_pass">hasło www</label>
                         <input class="input" name="www_pass" id="www_pass" type="password" title="Nazwa wyswietlana w bannerze" placeholder="password">
                     </div>  
                     <div>

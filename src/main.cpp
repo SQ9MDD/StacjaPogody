@@ -6,7 +6,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
-#include <WiFiClientSecureBearSSL.h>
+//#include <WiFiClientSecureBearSSL.h>
 #include <ESP8266WebServer.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
@@ -121,12 +121,12 @@ void setup() {
   server.begin();
   ArduinoOTA.setPassword(INI_UPLOAD_PASS);
   ArduinoOTA.onStart([](){
-	  String type;
-		if (ArduinoOTA.getCommand() == U_FLASH){
-			type = "sketch";
-		}else{
-			type = "filesystem";
-		}
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH){
+      type = "sketch";
+    }else{
+      type = "filesystem";
+    }
 	});
   ArduinoOTA.begin();
 

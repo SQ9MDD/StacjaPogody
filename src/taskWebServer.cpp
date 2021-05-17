@@ -31,10 +31,10 @@ void getJSON(){
     String buf = "{\"ActiTime\": ";
     buf += millis();   
     buf += ", \"result\":[{ ";
-    buf += "\"Temp\": \"" + String(sensor_temperature) + "\"";
-    buf += ", \"Humidity\": \"" + String(sensor_humidity) + "\"";
-    buf += ", \"DewPoint\": \"" + String(sensor_dewpoint) + "\"";
-    buf += ", \"Barometer\": \"" + String(sensor_baro) + "\"";
+    buf += "\"Temp\": " + String(sensor_temperature);
+    buf += ", \"Humidity\": " + String(sensor_humidity) ;
+    buf += ", \"DewPoint\": " + String(sensor_dewpoint) ;
+    buf += ", \"Barometer\": " + String(sensor_baro) ;
     buf += "}]}";
     server.send(200, F("application/json"), buf);
   }else if(server.arg("type") == "devices" && server.arg("rid")=="1"){  // te dane pobiera program strona główna (bez autentykacji)
