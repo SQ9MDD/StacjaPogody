@@ -32,7 +32,7 @@ float sensor_dewpoint = 0.0;
 float sensor_baro = 0.0;
 int above_sea_lvl = 0;
 
-Adafruit_BME280 bme;
+Adafruit_BME280 bme;              // ESP8266 connect 
 
 void read_global(){
   if (LittleFS.begin()){

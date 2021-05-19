@@ -23,7 +23,17 @@ extern int above_sea_lvl;
 void getJSON(){
   String sensor_status;
   if(sensor_ok){
-    sensor_status = "Pomiar.";
+    if(sensor_baro < 1010.0) sensor_status += "Pochmurnie";
+    if(sensor_baro > 1020.0) sensor_status += "Slonecznie";
+    if(sensor_baro >= 1010.0 && sensor_baro <= 1020.0) sensor_status += "Przejściowe zachmurzenie";
+
+    if(sensor_humidity > 85 && sensor_temperature > 3) sensor_status += ", możliwe opady deszczu";
+    if(sensor_humidity > 85 && sensor_temperature <= 3) sensor_status += ", możliwe opady śniegu";
+
+    if(sensor_temperature < 10) sensor_status += ", zimno.";
+    if(sensor_temperature >= 10 && sensor_temperature <= 18) sensor_status += ", chłodno.";
+    if(sensor_temperature > 18 && sensor_temperature <= 22) sensor_status += ", ciepło.";
+    if(sensor_temperature > 22) sensor_status += ", upalnie.";
   }else{
     sensor_status = "Uszkodzenie czujnika";
   }
@@ -70,7 +80,15 @@ void getJSON(){
     buf += "\"" + wifi_pass + "\"";   
     buf += "}";
     server.send(200, F("application/json"), buf);      
-  }else{  // podstawowe informacje (bez autentykacji)
+  }else if(server.arg("type") == "devices" && server.arg("rid")=="4"){  // diagnostyka (bez autentykacji)
+    String buf = "{\"time\": ";
+    buf += millis();
+    buf += ", \"RSSI\": ";
+    buf += "\"" + String(WiFi.RSSI()) + "\"";  
+    buf += "}";
+    server.send(200, F("application/json"), buf);  
+  }
+  else{  // podstawowe informacje (bez autentykacji)
     String message = "{\"time\": ";
     message += millis(); 
     message += ", \"gardner_name\": ";
@@ -78,7 +96,7 @@ void getJSON(){
     message += ", \"title\": ";
     message += "\"" + gardner_name + "\"";  
     message += ", \"version\": ";
-    message += "\"" + String(VERSION) + "<br> build: " +String(BUILD_NUMBER) + "\"";     
+    message += "\"" + String(VERSION_SHORT) + "<br> build: " + String(BUILD_NUMBER) + " - " + String(BUILD_DATE) + "\"";     
     message += ", \"job_status\": ";
     message += "\"" + sensor_status + "\"";
     message += "}";

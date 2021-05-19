@@ -56,6 +56,9 @@ hf = """
 #ifndef VERSION_SHORT
   #define VERSION_SHORT "{}"
 #endif
-""".format(build_no, version, build_date, version)
+#ifndef BUILD_DATE
+  #define BUILD_DATE "{}"
+#endif
+""".format(build_no, version, build_date, version, build_date)
 with open(FILENAME_VERSION_H, 'w+') as f:
     f.write(hf)
