@@ -113,6 +113,16 @@ const char HTTP_HTML[] PROGMEM = R"=====(
                     <h2> <b id="Barometer">wait...</b><b>hPa</b></h2>
                 </div>                
             </div>
+            <div class="grid-container quarters">
+                <div>
+                    <label for="Wind">Prędkość wiatru<br><small>(średnia z ostatniej minuty)</small></label>
+                    <h2> <b id="Wind">wait...</b><b>m/s</b></h2>
+                </div> 
+                <div>
+                    <label for="Gust">Poryw wiatru<br><small>(maximum z ostatnich 5 minut)</small></label>
+                    <h2> <b id="Gust">wait...</b><b>m/s</b></h2>
+                </div>                                
+            </div>
             <div class="grid-container full"><b id="job_status">Analizuję dane...</b></div>
         </section>
         <section>

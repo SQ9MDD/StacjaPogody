@@ -17,8 +17,21 @@
 #include <LittleFS.h>
 #include <taskWebServer.h>
 
+const byte wind_sensor = D5;
+volatile byte interruptCounter = 0;
+float ms;
+float ms_max;
+int rpm = 0;
+int rpm_max = 0;
+int rpm_avg = 0;
+int rpm_max_arr[30];
+int rpm_max_pointer = 0;
+float diameter_mm = 216;    // srednica anemometru w mm
+float kalibracja = 2.9;     // kalibracja miernika 
+
 unsigned long last_read = 0;
-String gardner_name = "SINUX WS.0.2";
+unsigned long last_rpm_read = 0;
+String gardner_name = "SINUX WS.0.3";
 String wifi_config_file = "/wifi_conf.txt";
 String config_file = "/config.txt";
 String wifi_ssid = "";
@@ -57,7 +70,13 @@ void read_global(){
       }   
       if(line == 2){  // www password
         www_pass = s.c_str();
-      }     
+      }    
+      if(line == 3){  // anemometr diameter
+        diameter_mm = s.toInt();
+      }  
+      if(line == 4){  // anemometr calibration factor
+        kalibracja = s.toFloat();
+      }                  
       line++;
     }
   file.close();    
@@ -106,7 +125,14 @@ void read_bme(){
   sensor_baro = bme.readPressure() / 100.0F + hPa_offset;
 }
 
+void IRAM_ATTR wind_tick(){
+  interruptCounter++;
+}
+
 void setup() {
+  pinMode(wind_sensor,INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(wind_sensor), wind_tick, FALLING);
+
   Serial.begin(115200);
   delay(1000);
   Serial.println("\n\n");
@@ -143,17 +169,47 @@ void setup() {
   sensor_dewpoint = dewPointFast(sensor_temperature,sensor_humidity);
   sensor_baro = bme.readPressure() / 100.0F + hPa_offset;  
   Serial.println("www username is: root");
-  Serial.println("www password is: " + String(www_pass) + "\n");
-  Serial.println("millis;temp;humidity;dewpoint;barometer");
+  Serial.println("www password is: " + String(www_pass));
+  Serial.println("system name: " + String(gardner_name));
+  Serial.println("baro montage lvl: " + String(above_sea_lvl));
+  Serial.println("anemometer diameter: " + String(diameter_mm));
+  Serial.println("anemometer calibration: " + String(kalibracja) + "\n");
+  Serial.println("millis;temp;humidity;dewpoint;barometer;wind;gust");
 }
 
-void loop() {
+void loop(){
   ArduinoOTA.handle();
   server.handleClient();
+
+  if(millis() - last_rpm_read > 10000){
+    last_rpm_read = millis();
+    rpm = (interruptCounter * 6) / 4;
+    interruptCounter = 0;
+    // obliczenie sredniej predkosci wiatru uśrednianie ostatnich 6-ciu pomiarów = średnia z minuty
+    rpm_avg = (rpm_avg * 5 + rpm) / 6;
+    ms = (diameter_mm * 3.14 * rpm_avg) / 1000 / 60;
+    ms = ms * kalibracja; 
+
+    // obliczenie predkosci max
+    // dodaj kazdy pomiar do tablicy odczytaj z tablicy wartość max, 30el w tablicy co 10sec = 5min
+    rpm_max_arr[rpm_max_pointer] = rpm;
+    rpm_max_pointer++;
+    if(rpm_max_pointer == 30){
+      rpm_max_pointer = 0;
+    }
+    rpm_max = 0;
+    for(int i = 0; i < 30; i++){
+      if(rpm_max < rpm_max_arr[i]){
+        rpm_max = rpm_max_arr[i];
+      }
+    }
+    ms_max = (diameter_mm * 3.14 * rpm_max) / 1000 / 60;
+    ms_max = ms_max * kalibracja;
+  }
  
   if(millis() - last_read > 5000){
     read_bme();
     last_read = millis();
-    Serial.println(String(millis()) + ";" + String(sensor_temperature,1) + ";" + String(sensor_humidity,0) + ";" + String(sensor_dewpoint,1) + ";" + String(sensor_baro,1));
+    Serial.println(String(millis()) + ";" + String(sensor_temperature,1) + ";" + String(sensor_humidity,0) + ";" + String(sensor_dewpoint,1) + ";" + String(sensor_baro,1) + ";" + String(ms) + ";" + String(ms_max));
   }
 }

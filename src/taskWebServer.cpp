@@ -6,6 +6,10 @@
 #include "taskWebServer.h"
 
 ESP8266WebServer server(80);
+extern float ms;
+extern float ms_max;
+extern float diameter_mm;
+extern float kalibracja;
 extern String gardner_name;
 extern String config_file;
 extern String wifi_config_file;
@@ -23,15 +27,17 @@ extern int above_sea_lvl;
 void getJSON(){
   String sensor_status;
   if(sensor_ok){
+    // opis od ciśnienia
     if(sensor_baro < 1010.0) sensor_status += "Pochmurnie";
     if(sensor_baro > 1020.0) sensor_status += "Slonecznie";
     if(sensor_baro >= 1010.0 && sensor_baro <= 1020.0) sensor_status += "Przejściowe zachmurzenie";
-
+    // opis od wilgotności
     if(sensor_humidity > 85 && sensor_temperature > 3) sensor_status += ", możliwe opady deszczu";
     if(sensor_humidity > 85 && sensor_temperature <= 3) sensor_status += ", możliwe opady śniegu";
-
+    // opis od temperatury
     if(sensor_temperature < 10) sensor_status += ", zimno.";
-    if(sensor_temperature >= 10 && sensor_temperature <= 18) sensor_status += ", chłodno.";
+    if(sensor_temperature >= 10 && sensor_temperature <= 15) sensor_status += ", chłodno.";
+    if(sensor_temperature > 15 && sensor_temperature <= 18) sensor_status += ", temperatura umiarkowana.";
     if(sensor_temperature > 18 && sensor_temperature <= 22) sensor_status += ", ciepło.";
     if(sensor_temperature > 22) sensor_status += ", upalnie.";
   }else{
@@ -42,9 +48,11 @@ void getJSON(){
     buf += millis();   
     buf += ", \"result\":[{ ";
     buf += "\"Temp\": " + String(sensor_temperature);
-    buf += ", \"Humidity\": " + String(sensor_humidity) ;
-    buf += ", \"DewPoint\": " + String(sensor_dewpoint) ;
-    buf += ", \"Barometer\": " + String(sensor_baro) ;
+    buf += ", \"Humidity\": " + String(sensor_humidity);
+    buf += ", \"DewPoint\": " + String(sensor_dewpoint);
+    buf += ", \"Barometer\": " + String(sensor_baro);
+    buf += ", \"Wind\": " + String(ms); 
+    buf += ", \"Gust\": " + String(ms_max);
     buf += "}]}";
     server.send(200, F("application/json"), buf);
   }else if(server.arg("type") == "devices" && server.arg("rid")=="1"){  // te dane pobiera program strona główna (bez autentykacji)
@@ -54,6 +62,8 @@ void getJSON(){
     buf += ", \"Humidity\": \"" + String(sensor_humidity,0) + "\"";
     buf += ", \"DewPoint\": \"" + String(sensor_dewpoint,1) + "\"";
     buf += ", \"Barometer\": \"" + String(sensor_baro,1) + "\""; 
+    buf += ", \"Wind\": \"" + String(ms,1) + "\""; 
+    buf += ", \"Gust\": \"" + String(ms_max,1) + "\""; 
     buf += ", \"job_status\": ";
     buf += "\"" + sensor_status + "\"";           
     buf += "}";
@@ -67,7 +77,11 @@ void getJSON(){
     buf += ", \"above_sea_lvl\": ";
     buf += "\"" + String(above_sea_lvl) + "\""; 
     buf += ", \"www_pass\": ";
-    buf += "\"" + String(www_pass) + "\"";     
+    buf += "\"" + String(www_pass) + "\"";  
+    buf += ", \"diameter_mm\": ";
+    buf += "\"" + String(diameter_mm,0) + "\"";    
+    buf += ", \"kalibracja\": ";
+    buf += "\"" + String(kalibracja,1) + "\"";          
     buf += "}";
     server.send(200, F("application/json"), buf);
   }else if(server.arg("type") == "devices" && server.arg("rid")=="3"){ // formularz ustawien wifi jednorazowo pobierany przy ladowaniu strony (autentykacja)
@@ -108,6 +122,8 @@ void save_settings(){
   if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
   gardner_name = server.arg("gardner_name");
   above_sea_lvl = server.arg("above_sea_lvl").toInt();
+  diameter_mm = server.arg("diameter_mm").toInt();
+  kalibracja = server.arg("kalibracja").toFloat();
   www_pass = server.arg("www_pass");
   if (LittleFS.begin()){
       spiffsActive = true;
@@ -116,7 +132,7 @@ void save_settings(){
   }  
   if(www_pass != ""){
     File file = LittleFS.open(config_file,"w");  
-    file.print(gardner_name + "\n" + above_sea_lvl + "\n" + www_pass + "\n");
+    file.print(gardner_name + "\n" + above_sea_lvl + "\n" + www_pass + "\n" + diameter_mm + "\n" + kalibracja + "\n");
     file.close();  
     delay(2000);
     server.send(200, F("text/html"), "<html><head><meta http-equiv=\"refresh\" content=\"1; url=/settings\"></head><body><center><br><br><br><b>OK</body></html>");

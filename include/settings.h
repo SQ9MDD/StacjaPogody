@@ -105,12 +105,22 @@ const char HTTP_SETTINGS[] PROGMEM = R"=====(
                     </div>   
                     <div>
                         <label for="www_pass">hasło www</label>
-                        <input class="input" name="www_pass" id="www_pass" type="password" title="Nazwa wyswietlana w bannerze" placeholder="password">
+                        <input class="input" name="www_pass" id="www_pass" type="password" title="hasło do panela www" placeholder="password">
                     </div>  
                     <div>
                         &nbsp; 
                     </div>                                            
-                </div>            
+                </div>   
+                <div class="grid-container quarters">
+                    <div>
+                        <label for="diameter_mm">Średnica anemometru</label>
+                        <input class="input" name="diameter_mm" id="diameter_mm" type="number" min="0" max="8848" step="1" title="Średnica anemometru w milimetrach" placeholder="0">
+                    </div>   
+                    <div>
+                        <label for="kalibracja">Kalibracja anemometru</label>
+                        <input class="input" name="kalibracja" id="kalibracja" type="number" min="0" max="20" step="0.1" title="współczynnik kalibracji anemometru" placeholder="0">
+                    </div>                                          
+                </div>         
                 <div>&nbsp;</div>
                 <div>
                     <input class="submit_btn" type="submit" value="zapisz" title="...">
