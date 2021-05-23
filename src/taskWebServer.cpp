@@ -21,6 +21,7 @@ extern boolean sensor_ok;
 extern float sensor_temperature;
 extern float sensor_humidity;
 extern float sensor_dewpoint;
+extern float sensor_windchill;
 extern float sensor_baro;
 extern int above_sea_lvl;
 
@@ -50,6 +51,7 @@ void getJSON(){
     buf += "\"Temp\": " + String(sensor_temperature);
     buf += ", \"Humidity\": " + String(sensor_humidity);
     buf += ", \"DewPoint\": " + String(sensor_dewpoint);
+    buf += ", \"sensor_windchill\": " + String(sensor_windchill);
     buf += ", \"Barometer\": " + String(sensor_baro);
     buf += ", \"Wind\": " + String(ms); 
     buf += ", \"Gust\": " + String(ms_max);
@@ -61,9 +63,12 @@ void getJSON(){
     buf += ", \"Temp\": \"" + String(sensor_temperature,1) + "\"";
     buf += ", \"Humidity\": \"" + String(sensor_humidity,0) + "\"";
     buf += ", \"DewPoint\": \"" + String(sensor_dewpoint,1) + "\"";
+    buf += ", \"sensor_windchill\": \"" + String(sensor_windchill,1) + "\"";
     buf += ", \"Barometer\": \"" + String(sensor_baro,1) + "\""; 
     buf += ", \"Wind\": \"" + String(ms,1) + "\""; 
+    buf += ", \"WindKMH\": \"" + String((ms * 3.6),1) + "\""; 
     buf += ", \"Gust\": \"" + String(ms_max,1) + "\""; 
+    buf += ", \"GustKMH\": \"" + String((ms_max * 3.6),1) + "\""; 
     buf += ", \"job_status\": ";
     buf += "\"" + sensor_status + "\"";           
     buf += "}";

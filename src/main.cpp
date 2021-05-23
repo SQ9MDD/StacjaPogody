@@ -42,8 +42,10 @@ boolean sensor_ok = true;
 float sensor_temperature = 0.0;
 float sensor_humidity = 0.0;
 float sensor_dewpoint = 0.0;
+float sensor_windchill = 0.0;
 float sensor_baro = 0.0;
 int above_sea_lvl = 0;
+
 
 Adafruit_BME280 bme;              // ESP8266 connect 
 
@@ -205,6 +207,16 @@ void loop(){
     }
     ms_max = (diameter_mm * 3.14 * rpm_max) / 1000 / 60;
     ms_max = ms_max * kalibracja;
+
+    // Wyliczenie temp odczuwalnej
+    if(sensor_temperature < 15.0 && ms > 1.34){
+      float MPH = ms * 2.23693629;
+      float TempF = (sensor_temperature * 9) / 5 + 32;
+      float windchillF = 35.74 + 0.6215 * TempF - 35.75 * pow(MPH, 0.16) + 0.4275 * TempF * pow(MPH, 0.16);
+      sensor_windchill = (windchillF - 32) * 5 / 9;      
+    }else{
+      sensor_windchill = sensor_temperature;
+    }
   }
  
   if(millis() - last_read > 5000){

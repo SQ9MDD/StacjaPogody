@@ -5,6 +5,8 @@
      <style>
         body { font-size: 1.2rem; line-height: 1.6; font-weight: 300;font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; color: rgb(13, 24, 12); background-color: white;}
         small {font-size: 0.7rem; }
+        .big {font-size: 1.8rem; font-weight: 1000;}
+        .med {font-size: 1.2rem; font-weight: 500;}
         .container {position: relative; margin: 0 auto;}
         .grid-container {position: relative;max-width: var(--grid-max-width);margin: 0 auto;padding: 10px;text-align: center;display: grid; grid-gap: 10px;gap: 10px;}
         .grid-container.quarters { grid-template-columns: repeat(4, 1fr); border-radius: 4px;}
@@ -96,31 +98,35 @@
             <div class="grid-container full"><big><b>Parametry</b></big></div>
             <div class="grid-container quarters">
                 <div>
-                    <label for="Temp">Temperatura</label>
-                    <h2> <b id="Temp">wait...</b><b>C</b></h2>
+                    <label for="Temp">Temperatura</label><br>
+                    <big class=big> <b id="Temp">wait...</b><b>C</b></big><br><br>
                 </div>
                 <div>
-                    <label for="Humidity">Wilgotność</label>
-                    <h2> <b id="Humidity">wait...</b><b>%Rh</b></h2>
+                    <label for="Humidity">Wilgotność</label><br>
+                    <big class=big> <b id="Humidity">wait...</b><b>%Rh</b></big><br><br>
                 </div>
                 <div>
-                    <label for="DewPoint">Punkt Rosy</label>
-                    <h2> <b id="DewPoint">wait...</b><b>C</b></h2>
+                    <label for="DewPoint">Punkt Rosy</label><br>
+                    <big class=big> <b id="DewPoint">wait...</b><b>C</b></big><br><br>
                 </div>
                 <div>
-                    <label for="Barometer">Ciśnienie</label>
-                    <h2> <b id="Barometer">wait...</b><b>hPa</b></h2>
+                    <label for="Barometer">Ciśnienie</label><br>
+                    <big class=big> <b id="Barometer">wait...</b><b>hPa</b></big><br><br>
                 </div>                
             </div>
             <div class="grid-container quarters">
                 <div>
-                    <label for="Wind">Prędkość wiatru<br><small>(średnia z ostatniej minuty)</small></label>
-                    <h2> <b id="Wind">wait...</b><b>m/s</b></h2>
+                    <label for="Wind">Prędkość wiatru<br><small>(średnia z ostatniej minuty)</small></label><br>
+                    <big class=big><b id="Wind">wait...</b><b>m/s</b></big><br><big class=med>(<b id="WindKMH">wait...</b><b> km/h</b>)</big>
                 </div> 
                 <div>
                     <label for="Gust">Poryw wiatru<br><small>(maximum z ostatnich 5 minut)</small></label>
-                    <h2> <b id="Gust">wait...</b><b>m/s</b></h2>
-                </div>                                
+                    <big class=big><b id="Gust">wait...</b><b>m/s</b></big><br><big class=med>(<b id="GustKMH">wait...</b><b> km/h</b>)</big>
+                </div>  
+                <div>
+                    <label for="sensor_windchill">Temperatura odczuwalna</label><br><br>
+                    <big class=big><b id="sensor_windchill">wait...</b><b>C</b></big>
+                </div>                                              
             </div>
             <div class="grid-container full"><b id="job_status">Analizuję dane...</b></div>
         </section>
