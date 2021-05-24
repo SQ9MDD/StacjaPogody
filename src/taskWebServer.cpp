@@ -24,6 +24,7 @@ extern float sensor_dewpoint;
 extern float sensor_windchill;
 extern float sensor_baro;
 extern int above_sea_lvl;
+extern int direction_raw;
 
 void getJSON(){
   String sensor_status;
@@ -69,6 +70,8 @@ void getJSON(){
     buf += ", \"WindKMH\": \"" + String((ms * 3.6),1) + "\""; 
     buf += ", \"Gust\": \"" + String(ms_max,1) + "\""; 
     buf += ", \"GustKMH\": \"" + String((ms_max * 3.6),1) + "\""; 
+    buf += ", \"direction_raw\": \"" + String(direction_raw) + "\"";
+    
     buf += ", \"job_status\": ";
     buf += "\"" + sensor_status + "\"";           
     buf += "}";
