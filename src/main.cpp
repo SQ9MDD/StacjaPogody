@@ -30,12 +30,26 @@ int rpm_max_pointer = 0;
 float diameter_mm = 216;    // srednica anemometru w mm
 float kalibracja = 2.9;     // kalibracja miernika 
 int direction_raw = 0;
+int direction = 0;
+int dir_calibration = 0;
 
+int domoti_IP_1 = 192;
+int domoti_IP_2 = 168;
+int domoti_IP_3 = 0;
+int domoti_IP_4 = 1;
+int domoti_PORT = 80;
+int send_interval = 5;
+boolean domoti_on = false;
+int idx_temp_rh_baro_sensor = 1;
+int idx_wind_sensor = 2;
+unsigned long domoticz_interval = 0;
+unsigned long last_data_send = 0;
 unsigned long last_read = 0;
 unsigned long last_rpm_read = 0;
 String gardner_name = "SINUX WS.0.3";
 String wifi_config_file = "/wifi_conf.txt";
 String config_file = "/config.txt";
+String domoti_config_file = "/domoti_conf.txt";
 String wifi_ssid = "";
 String wifi_pass = "";
 String www_pass = "sinux2021";
@@ -79,7 +93,10 @@ void read_global(){
       }  
       if(line == 4){  // anemometr calibration factor
         kalibracja = s.toFloat();
-      }                  
+      }   
+      if(line == 5){  // direction sensor
+        dir_calibration = s.toInt();
+      }                       
       line++;
     }
   file.close();    
@@ -110,6 +127,68 @@ void read_wifi_spiffs(){
       line++;
     }
   file.close();
+}
+
+void read_domoti(){
+  if (LittleFS.begin()){
+      spiffsActive = true;
+  } else {
+      Serial.println("Unable to activate SPIFFS");
+  }
+  File file = LittleFS.open(domoti_config_file,"r");
+  if(!file){
+    Serial.println("error opening file");
+  }  
+    String s;
+    int line = 0;
+    while (file.position()<file.size()){
+      s = file.readStringUntil('\n');
+      s.trim();
+      if(line == 0){ domoti_IP_1 = s.toInt(); }
+      if(line == 1){ domoti_IP_2 = s.toInt(); }    
+      if(line == 2){ domoti_IP_3 = s.toInt(); } 
+      if(line == 3){ domoti_IP_4 = s.toInt(); }
+      if(line == 4){ domoti_PORT = s.toInt(); } 
+      if(line == 5){ send_interval = s.toInt(); } 
+      if(line == 6){ domoti_on = s.toInt(); } 
+      if(line == 7){ idx_temp_rh_baro_sensor = s.toInt(); } 
+      if(line == 8){ idx_wind_sensor = s.toInt(); } 
+      line++;
+    }
+  file.close();  
+}
+
+// type_sensor enum: 1-temperature humidity baro, 2- wind
+void send_domoticz(int type_sensor, int idx){
+  String url = "http://" + String(domoti_IP_1) + "." + String(domoti_IP_2) + "." + String(domoti_IP_3) + "." + String(domoti_IP_4) + ":" +String(domoti_PORT) + "/json.htm";
+  int hum_stat = 0;
+  int baro_stat = 0;
+  if(type_sensor == 1){
+    if(sensor_humidity < 35.0) hum_stat = 2; 
+    if(sensor_humidity >= 35.0 && sensor_humidity < 65.0) hum_stat = 1;
+    if(sensor_humidity >= 65.0) hum_stat = 3;
+    if(sensor_baro < 1000) baro_stat  = 4;
+    if(sensor_baro >= 1000 && sensor_baro <1010) baro_stat  = 3;
+    if(sensor_baro >= 1010 && sensor_baro <1020) baro_stat  = 2;
+    if(sensor_baro >= 1020) baro_stat  = 1;
+    url +=  "?type=command&param=udevice&idx=" + String(idx) + "&nvalue=0&svalue=" + String(sensor_temperature,1) + ";" + String(sensor_humidity) + ";" + String(hum_stat) + ";" + String(sensor_baro) + ";" + String(baro_stat);
+  }
+  if(type_sensor == 2){
+    String direction_stat = "N";
+    if(direction < 45 || direction > 315) direction_stat = "N";
+    if(direction >= 45 && direction < 135) direction_stat = "E";
+    if(direction >= 135 && direction < 225) direction_stat = "S";
+    if(direction >= 225 && direction < 315) direction_stat = "W";
+    url += "?type=command&param=udevice&idx=" + String(idx) + "&nvalue=0&svalue=" + String(direction) + ";" + direction_stat + ";" + String(ms*10) + ";" + String(ms_max*10) + ";" + String(sensor_temperature,1) + ";" + String(sensor_windchill) + ";" ;
+  } 
+
+  WiFiClient client;
+  HTTPClient http;
+  http.begin(client,url);
+  http.GET();
+  // dopisac obslugę błędów
+  http.end();
+  Serial.println(url);
 }
 
 double dewPointFast(double celsius, double humidity){
@@ -164,6 +243,7 @@ void setup() {
   Serial.println("read config...");   
   read_wifi_spiffs();
   read_global();
+  read_domoti();
   delay(2000);
   Serial.println("booting...");
   connect_to_wifi();
@@ -237,8 +317,19 @@ void loop(){
       sensor_windchill = sensor_temperature;
     }
     // odczytanie kierunku raw z przetwornika
-    direction_raw = analogRead(dire_sensor);
+    direction_raw = (direction_raw * 5 + analogRead(dire_sensor)) / 6;
+    int direction_abs = calculate_abs_degree(direction_raw, 334, 921, 0);
+    direction = calculate_rel_degree(direction_abs, dir_calibration);
   }
+
+  // domoticz integration
+  domoticz_interval = u_long(send_interval * 60 * 1000);
+  if((millis() - last_data_send > domoticz_interval) && domoti_on){
+    send_domoticz(1, idx_temp_rh_baro_sensor);
+    send_domoticz(2, idx_wind_sensor);
+    last_data_send = millis();
+  }
+
   if(millis() - last_read > 5000){
     read_bme();
     last_read = millis();

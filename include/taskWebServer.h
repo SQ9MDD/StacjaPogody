@@ -12,6 +12,7 @@
 
 #include <html.h>
 #include <settings_wifi.h>
+#include <settings_domo.h>
 #include <settings.h>
 #include <version.h>
 

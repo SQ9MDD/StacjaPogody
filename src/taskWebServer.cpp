@@ -13,6 +13,7 @@ extern float kalibracja;
 extern String gardner_name;
 extern String config_file;
 extern String wifi_config_file;
+extern String domoti_config_file;
 extern String wifi_ssid;
 extern String wifi_pass;
 extern String www_pass;
@@ -25,6 +26,18 @@ extern float sensor_windchill;
 extern float sensor_baro;
 extern int above_sea_lvl;
 extern int direction_raw;
+extern int direction;
+extern int dir_calibration;
+
+extern int domoti_IP_1;
+extern int domoti_IP_2;
+extern int domoti_IP_3;
+extern int domoti_IP_4;
+extern int domoti_PORT;
+extern int send_interval;
+extern boolean domoti_on;
+extern int idx_temp_rh_baro_sensor;
+extern int idx_wind_sensor;
 
 void getJSON(){
   String sensor_status;
@@ -56,6 +69,7 @@ void getJSON(){
     buf += ", \"Barometer\": " + String(sensor_baro);
     buf += ", \"Wind\": " + String(ms); 
     buf += ", \"Gust\": " + String(ms_max);
+    buf += ", \"direction\": " + String(direction);    
     buf += "}]}";
     server.send(200, F("application/json"), buf);
   }else if(server.arg("type") == "devices" && server.arg("rid")=="1"){  // te dane pobiera program strona główna (bez autentykacji)
@@ -71,7 +85,7 @@ void getJSON(){
     buf += ", \"Gust\": \"" + String(ms_max,1) + "\""; 
     buf += ", \"GustKMH\": \"" + String((ms_max * 3.6),1) + "\""; 
     buf += ", \"direction_raw\": \"" + String(direction_raw) + "\"";
-    
+    buf += ", \"direction\": \"" + String(direction) + "\"";
     buf += ", \"job_status\": ";
     buf += "\"" + sensor_status + "\"";           
     buf += "}";
@@ -89,7 +103,9 @@ void getJSON(){
     buf += ", \"diameter_mm\": ";
     buf += "\"" + String(diameter_mm,0) + "\"";    
     buf += ", \"kalibracja\": ";
-    buf += "\"" + String(kalibracja,1) + "\"";          
+    buf += "\"" + String(kalibracja,1) + "\"";  
+    buf += ", \"dir_calibration\": ";
+    buf += "\"" + String(dir_calibration) + "\"";            
     buf += "}";
     server.send(200, F("application/json"), buf);
   }else if(server.arg("type") == "devices" && server.arg("rid")=="3"){ // formularz ustawien wifi jednorazowo pobierany przy ladowaniu strony (autentykacja)
@@ -102,6 +118,30 @@ void getJSON(){
     buf += "\"" + wifi_pass + "\"";   
     buf += "}";
     server.send(200, F("application/json"), buf);      
+  }else if(server.arg("type") == "devices" && server.arg("rid")=="6"){ // formularz ustawien integracji z domoticz
+    if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
+    String buf = "{\"time\": ";
+    buf += millis();
+    buf += ", \"domoti_IP_1\": ";
+    buf += "\"" + String(domoti_IP_1) + "\""; 
+    buf += ", \"domoti_IP_2\": ";
+    buf += "\"" + String(domoti_IP_2) + "\"";     
+    buf += ", \"domoti_IP_3\": ";
+    buf += "\"" + String(domoti_IP_3) + "\"";    
+    buf += ", \"domoti_IP_4\": ";
+    buf += "\"" + String(domoti_IP_4) + "\"";  
+    buf += ", \"domoti_PORT\": ";
+    buf += "\"" + String(domoti_PORT) + "\"";     
+    buf += ", \"send_interval\": ";
+    buf += "\"" + String(send_interval) + "\""; 
+    buf += ", \"idx_temp_rh_baro_sensor\": ";
+    buf += "\"" + String(idx_temp_rh_baro_sensor) + "\""; 
+    buf += ", \"idx_wind_sensor\": ";
+    buf += "\"" + String(idx_wind_sensor) + "\""; 
+    buf += ", \"domoti_on\": ";
+    buf += domoti_on;                     
+    buf += "}";   
+    server.send(200, F("application/json"), buf);    
   }else if(server.arg("type") == "devices" && server.arg("rid")=="4"){  // diagnostyka (bez autentykacji)
     String buf = "{\"time\": ";
     buf += millis();
@@ -132,6 +172,7 @@ void save_settings(){
   above_sea_lvl = server.arg("above_sea_lvl").toInt();
   diameter_mm = server.arg("diameter_mm").toInt();
   kalibracja = server.arg("kalibracja").toFloat();
+  dir_calibration = server.arg("dir_calibration").toInt();
   www_pass = server.arg("www_pass");
   if (LittleFS.begin()){
       spiffsActive = true;
@@ -140,7 +181,7 @@ void save_settings(){
   }  
   if(www_pass != ""){
     File file = LittleFS.open(config_file,"w");  
-    file.print(gardner_name + "\n" + above_sea_lvl + "\n" + www_pass + "\n" + diameter_mm + "\n" + kalibracja + "\n");
+    file.print(gardner_name + "\n" + above_sea_lvl + "\n" + www_pass + "\n" + diameter_mm + "\n" + kalibracja + "\n" + dir_calibration + "\n");
     file.close();  
     delay(2000);
     server.send(200, F("text/html"), "<html><head><meta http-equiv=\"refresh\" content=\"1; url=/settings\"></head><body><center><br><br><br><b>OK</body></html>");
@@ -148,6 +189,30 @@ void save_settings(){
     server.send(200, F("text/html"), "<html><head><meta http-equiv=\"refresh\" content=\"1; url=/settings\"></head><body><center><br><br><br><b>EMPTY PASSWORD</body></html>");
   }
 
+}
+
+void save_domo(){
+  if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
+  domoti_IP_1 = server.arg("domoti_IP_1").toInt(); 
+  domoti_IP_2 = server.arg("domoti_IP_2").toInt(); 
+  domoti_IP_3 = server.arg("domoti_IP_3").toInt(); 
+  domoti_IP_4 = server.arg("domoti_IP_4").toInt(); 
+  domoti_PORT = server.arg("domoti_PORT").toInt();
+  send_interval = server.arg("send_interval").toInt();
+  domoti_on = server.arg("domoti_on").toInt();
+  idx_temp_rh_baro_sensor = server.arg("idx_temp_rh_baro_sensor").toInt();
+  idx_wind_sensor = server.arg("idx_wind_sensor").toInt();
+
+  if (LittleFS.begin()){
+      spiffsActive = true;
+  } else {
+      Serial.println("Unable to activate SPIFFS");
+  } 
+  File file = LittleFS.open(domoti_config_file,"w"); 
+  file.print(String(domoti_IP_1) + "\n" + String(domoti_IP_2) + "\n" + String(domoti_IP_3) + "\n" + String(domoti_IP_4) + "\n" + String(domoti_PORT) + "\n" + String(send_interval) + "\n" + String(domoti_on) + "\n" + String(idx_temp_rh_baro_sensor) + "\n" + String(idx_wind_sensor) + "\n");
+  file.close();
+  server.send(200, F("text/html"), "<html><head><meta http-equiv=\"refresh\" content=\"1; url=/set_domo\"></head><body><center><br><br><br><b>OK</body></html>");
+  delay(2000);
 }
 
 void save_wifi(){
@@ -176,6 +241,12 @@ void handle_Index(){
   server.send(200, "text/html", HTTP_HTML);
 }
 
+// domoticz settings
+void set_domo(){
+  if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
+  server.send(200, "text/html", HTTP_DOMO);  
+}
+
 // WiFi settings
 void handle_set_wifi(){
   if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
@@ -191,9 +262,11 @@ void handle_settings(){
 // Define routing
 void restServerRouting(){
   server.on("/", handle_Index);
+  server.on("/set_domo",set_domo);
   server.on("/set_wifi", handle_set_wifi);
   server.on("/settings", handle_settings);
   server.on("/json.htm", getJSON);
+  server.on("/save_domo",save_domo);
   server.on("/save_wifi",save_wifi);
   server.on("/save_settings",save_settings);
 }

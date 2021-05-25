@@ -1,3 +1,4 @@
+const char HTTP_DOMO[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html lang="pl" style="height:100;">
     <head>
@@ -21,45 +22,45 @@
             window.onload = function (){
                 var xhttp = new XMLHttpRequest();
                 xhttp.onreadystatechange = function() {
-                    if (this.readyState == 4 && this.status == 200) {
-                        const response = JSON.parse(this.responseText);
-                        for (const [key, value] of Object.entries(response)) {
-                            let element = document.getElementById(key);
-                            if (element){
-                                if (element.type && element.type == "checkbox"){
-                                    element.checked = value;
-                                } else {
-                                    element.value = value;
-                                    element.innerHTML = value;
-                                }
+                if (this.readyState == 4 && this.status == 200) {
+                    const response = JSON.parse(this.responseText);
+                    for (const [key, value] of Object.entries(response)) {
+                        let element = document.getElementById(key);
+                        if (element){
+                            if (element.type && element.type == "checkbox"){
+                                element.checked = value;
+                            } else {
+                                element.value = value;
                             }
-                        }                   
-                    }
+                        }
+                    }                   
+                }
                 };
-                xhttp.open("GET", "/json.htm?type=devices&rid=2", true);
+                xhttp.open("GET", "/json.htm?type=devices&rid=6", true);
                 xhttp.send();
             }
 
             function refresh_data(){
                 var xhttp = new XMLHttpRequest();
                 xhttp.onreadystatechange = function() {
-                    if (this.readyState == 4 && this.status == 200) {
-                        const response = JSON.parse(this.responseText);
-                        for (const [key, value] of Object.entries(response)) {
-                            let element = document.getElementById(key);
-                            if (element){
-                                if (element.type && element.type == "checkbox"){
-                                } else {
-                                    element.innerHTML = value;
-                                }
+                if (this.readyState == 4 && this.status == 200) {
+                    const response = JSON.parse(this.responseText);
+                    for (const [key, value] of Object.entries(response)) {
+                        let element = document.getElementById(key);
+                        if (element){
+                            if (element.type && element.type == "checkbox"){
+                            } else {
+                                element.innerHTML = value;
                             }
-                        }                   
-                    }
+                        }
+                    }                   
+                }
                 };
                 xhttp.open("GET", "/json.htm", true);
                 xhttp.send();
             }
-            refresh_data();      
+            refresh_data();
+            //setInterval(refresh_data, 3000);        
         </script>
     </head>
     <body>
@@ -96,48 +97,48 @@
             </div>
         </section> 
         <section>
-            <div class="grid-container full"><big><b>Ustawienia główne</b></big></div>
-            <form action="/save_settings" method="get">
-                <div class="grid-container quarters">
-                    <div>
-                        <label for="gardner_name">Przyjazna nazwa</label>
-                        <input class="input" name="gardner_name" id="gardner_name" type="text" title="Nazwa wyswietlana w bannerze" placeholder="System name">
-                    </div> 
-                    <div>
-                        <label for="above_sea_lvl">Wysokość (m.n.p.m)</label>
-                        <input class="input" name="above_sea_lvl" id="above_sea_lvl" type="number" min="0" max="8848" step="1" title="Wysokość montażu czujnika nad poziomem morza" placeholder="0">
-                    </div>   
-                    <div>
-                        <label for="www_pass">hasło www</label>
-                        <input class="input" name="www_pass" id="www_pass" type="password" title="hasło do panela www" placeholder="password">
-                    </div>  
-                    <div>
-                        &nbsp; 
-                    </div>                                            
-                </div>   
-                <div class="grid-container quarters">
-                    <div>
-                        <label for="diameter_mm">Średnica anemometru</label>
-                        <input class="input" name="diameter_mm" id="diameter_mm" type="number" min="0" max="8848" step="1" title="Średnica anemometru w milimetrach" placeholder="0">
-                    </div>   
-                    <div>
-                        <label for="kalibracja">Kalibracja anemometru</label>
-                        <input class="input" name="kalibracja" id="kalibracja" type="number" min="0" max="20" step="0.1" title="współczynnik kalibracji anemometru" placeholder="0">
-                    </div> 
-                    <div>
-                        <label for="dir_calibration">Korekta kierunkowskazu</label>
-                        <input class="input" name="dir_calibration" id="dir_calibration" type="number" min="0" max="360" step="1" title="korekta kalibracji kierunku" placeholder="0">
-                    </div>                                                              
-                </div>         
-                <div>&nbsp;</div>
+            <div class="grid-container full"><big><b>Integracja z domoticzem</b></big></div>
+            <form action="/save_domo" method="get">
+            <div class="grid-container quarters">
                 <div>
-                    <input class="submit_btn" type="submit" value="zapisz" title="...">
-                </div>            
-            </form>
+                    <label for="domoti_IP">Adres IP domoticza</label><br>
+                    <input class="input_short" name="domoti_IP_1" id="domoti_IP_1" type="text" type="number" min="0" max="254" title="adres IP servera domoticz" placeholder="192">.
+                    <input class="input_short" name="domoti_IP_2" id="domoti_IP_2" type="text" type="number" min="0" max="254" title="adres IP servera domoticz" placeholder="168">.
+                    <input class="input_short" name="domoti_IP_3" id="domoti_IP_3" type="text" type="number" min="0" max="254" title="adres IP servera domoticz" placeholder="0">.
+                    <input class="input_short" name="domoti_IP_4" id="domoti_IP_4" type="text" type="number" min="0" max="254" title="adres IP servera domoticz" placeholder="1">
+                </div> 
+                <div>
+                    <label for="domoti_PORT">Port komunikacyjny</label>
+                    <input class="input" name="domoti_PORT" id="domoti_PORT" type="text"  title="port" placeholder="80">
+                </div>   
+                <div>
+                    <label for="send_interval">Interwał wysyłki danych</label>
+                    <input class="input" name="send_interval" id="send_interval" type="number" min="1" max="10" step="1" title="interwał wysyłki danych w minutach" placeholder="10">
+                </div>  
+                <div>
+                    <label for="domoti_on">Włącz integrację</label><br>
+                    <input class="box" name="domoti_on" id="domoti_on" type="checkbox" value="1" title="włącz integrację z domoticzem"> 
+                </div>                                            
+            </div>
+            <div class="grid-container quarters">
+                <div>
+                    <label for="idx_temp_rh_baro_sensor">IDX czujnika temp/Rh/baro</label>
+                    <input class="input" name="idx_temp_rh_baro_sensor" id="idx_temp_rh_baro_sensor" type="text"  title="wpisz IDX czujnika wilgotności" placeholder="1">
+                </div>   
+                <div>
+                    <label for="idx_wind_sensor">IDX czujnika wiatru</label>
+                    <input class="input" name="idx_wind_sensor" id="idx_wind_sensor" type="text"  title="wpisz IDX czujnika temperatury" placeholder="2">
+                </div>                  
+            </div>
+            <div>&nbsp;</div>
             <div>
-                &nbsp;
-            </div>            
-        </section>
+                <input class="submit_btn" type="submit" value="zapisz" title="...">
+            </div> 
+            </form>  
+        <div>
+            &nbsp;
+        </div>          
+        </section>   
         <section>
             <div class="grid-container full">
                 <small><b>SINUX @ 2021</b>
@@ -149,3 +150,4 @@
     </center>
     </body>
     </html>
+)=====";
