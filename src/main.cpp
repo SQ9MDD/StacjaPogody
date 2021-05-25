@@ -32,24 +32,39 @@ float kalibracja = 2.9;     // kalibracja miernika
 int direction_raw = 0;
 int direction = 0;
 int dir_calibration = 0;
+unsigned long last_read = 0;
+unsigned long last_rpm_read = 0;
 
+// zmienne integracji z domoticzem
 int domoti_IP_1 = 192;
 int domoti_IP_2 = 168;
 int domoti_IP_3 = 0;
 int domoti_IP_4 = 1;
 int domoti_PORT = 80;
-int send_interval = 5;
-boolean domoti_on = false;
 int idx_temp_rh_baro_sensor = 1;
 int idx_wind_sensor = 2;
+int send_interval = 5;
+boolean domoti_on = false;
 unsigned long domoticz_interval = 0;
 unsigned long last_data_send = 0;
-unsigned long last_read = 0;
-unsigned long last_rpm_read = 0;
+
+//zmienne integracji z APRS / CWOP
+String aprs_user = "FW0000";
+String aprs_pass = "-1";
+String aprs_lat = "5200.01N";
+String aprs_lon = "02055.01E";
+String aprs_addr = "cwop1.aprs.net";
+int aprs_port = 14580;
+int aprs_send_interval = 10;
+boolean aprs_on = false;
+unsigned long aprs_interval = 0;
+unsigned long aprs_last_data_send = 0;
+
 String gardner_name = "SINUX WS.0.3";
 String wifi_config_file = "/wifi_conf.txt";
 String config_file = "/config.txt";
 String domoti_config_file = "/domoti_conf.txt";
+String aprs_config_file = "/aprs_conf.txt";
 String wifi_ssid = "";
 String wifi_pass = "";
 String www_pass = "sinux2021";
@@ -158,6 +173,34 @@ void read_domoti(){
   file.close();  
 }
 
+void read_aprs(){
+  if (LittleFS.begin()){
+      spiffsActive = true;
+  } else {
+      Serial.println("Unable to activate SPIFFS");
+  }
+  File file = LittleFS.open(aprs_config_file,"r");
+  if(!file){
+    Serial.println("error opening file");
+  }  
+    String s;
+    int line = 0;
+    while (file.position()<file.size()){
+      s = file.readStringUntil('\n');
+      s.trim();
+      if(line == 0){ aprs_addr = s.c_str(); }
+      if(line == 1){ aprs_port = s.toInt(); }    
+      if(line == 2){ aprs_send_interval = s.toInt(); } 
+      if(line == 3){ aprs_on = s.toInt(); }
+      if(line == 4){ aprs_user = s.c_str(); } 
+      if(line == 5){ aprs_pass = s.c_str(); } 
+      if(line == 6){ aprs_lat = s.c_str(); } 
+      if(line == 7){ aprs_lon = s.c_str(); } 
+      line++;
+    }
+  file.close();  
+}
+
 // type_sensor enum: 1-temperature humidity baro, 2- wind
 void send_domoticz(int type_sensor, int idx){
   String url = "http://" + String(domoti_IP_1) + "." + String(domoti_IP_2) + "." + String(domoti_IP_3) + "." + String(domoti_IP_4) + ":" +String(domoti_PORT) + "/json.htm";
@@ -190,6 +233,73 @@ void send_domoticz(int type_sensor, int idx){
   http.end();
   Serial.println(url);
 }
+
+  String prepare_direction(int input){
+    if(input == 0){
+      return("000");
+    }else if(input <= 9){
+      return("00" + String(input,0));
+    }else if(input > 9 && input < 100){
+      return("0" + String(input,0));
+    }else{
+      return(String(input,0));
+    }
+  }
+
+  String prepare_wind(int input){
+    float wind_mph = float(input) * 3600.0 / 1609.0;
+    if(wind_mph == 0){
+      return("000");
+    }else if(wind_mph <= 9){
+      return("00" + String(wind_mph,0));
+    }else if(wind_mph > 9 && wind_mph < 100){
+      return("0" + String(wind_mph,0));
+    }else{
+      return(String(wind_mph,0));
+    }
+  }
+
+  String prepare_temp(float input){
+    float TempF = (input * 9) / 5 + 32; 
+    if(TempF < 100){
+      return("0" + String(TempF,0));
+    }else{
+      return(String(TempF,0));
+    }
+  }
+
+  String prepare_hum(float input){
+    if(input == 100){
+      return("00");
+    }else{
+      return(String(input,0));
+    }
+  }
+
+  void send_aprs(){
+    // priv var   
+    String login = "user " + aprs_user + " pass " + aprs_pass + " vers SINUX." + String(VERSION_SHORT);
+    String aprs_frame = aprs_user + ">APRS,TCPIP*:=" + aprs_lat + "/" + aprs_lon + "_" +  prepare_direction(direction) + "/" + prepare_wind(ms) + "g" + prepare_wind(ms_max) + "t" + prepare_temp(sensor_temperature) + "h" + prepare_hum(sensor_humidity) + "b" + String((sensor_baro * 10),0) + "oDtz";
+    // lets play some network
+    WiFiClient client;
+    int retry = 10;
+    while(!client.connect(aprs_addr, aprs_port) && (retry > 0)){
+      delay(100);
+      retry--;
+    }
+    if (!client.connected()){
+        Serial.println("connection failed");
+        client.stop();
+        return;
+    }else{
+        client.println(login);
+        Serial.println(login);
+        delay(3000); //as reccomended, 3" between login and sends packet
+        client.println(aprs_frame);
+        Serial.println(aprs_frame);
+        client.stop();
+    }    
+  }
 
 double dewPointFast(double celsius, double humidity){
   double a = 17.271;
@@ -244,6 +354,7 @@ void setup() {
   read_wifi_spiffs();
   read_global();
   read_domoti();
+  read_aprs();
   delay(2000);
   Serial.println("booting...");
   connect_to_wifi();
@@ -328,6 +439,13 @@ void loop(){
     send_domoticz(1, idx_temp_rh_baro_sensor);
     send_domoticz(2, idx_wind_sensor);
     last_data_send = millis();
+  }
+
+  // aprs integration
+  aprs_interval = u_long(aprs_send_interval * 60 * 1000);
+  if((millis() - aprs_last_data_send > aprs_interval) && aprs_on){
+    send_aprs();
+    aprs_last_data_send = millis();
   }
 
   if(millis() - last_read > 5000){

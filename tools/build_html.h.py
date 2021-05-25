@@ -15,4 +15,5 @@ def build_h(input_file,output_file,charname):
 build_h('html/index.html','include/html.h','HTTP_HTML')
 build_h('html/settings_wifi.html','include/settings_wifi.h','HTTP_WIFI')
 build_h('html/settings_domo.html','include/settings_domo.h','HTTP_DOMO')
+build_h('html/settings_aprs.html','include/settings_aprs.h','HTTP_APRS')
 build_h('html/settings.html','include/settings.h','HTTP_SETTINGS')

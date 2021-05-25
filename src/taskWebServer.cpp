@@ -14,6 +14,7 @@ extern String gardner_name;
 extern String config_file;
 extern String wifi_config_file;
 extern String domoti_config_file;
+extern String aprs_config_file;
 extern String wifi_ssid;
 extern String wifi_pass;
 extern String www_pass;
@@ -38,6 +39,15 @@ extern int send_interval;
 extern boolean domoti_on;
 extern int idx_temp_rh_baro_sensor;
 extern int idx_wind_sensor;
+
+extern String aprs_user;
+extern String aprs_pass;
+extern String aprs_lat;
+extern String aprs_lon;
+extern String aprs_addr;
+extern int aprs_port;
+extern int aprs_send_interval;
+extern boolean aprs_on;
 
 void getJSON(){
   String sensor_status;
@@ -142,6 +152,27 @@ void getJSON(){
     buf += domoti_on;                     
     buf += "}";   
     server.send(200, F("application/json"), buf);    
+  }else if(server.arg("type") == "devices" && server.arg("rid")=="7"){
+    String buf = "{\"time\": ";
+    buf += millis();    
+    buf += ", \"aprs_addr\": ";
+    buf += "\"" + aprs_addr + "\"";  
+    buf += ", \"aprs_port\": ";
+    buf += aprs_port;    
+    buf += ", \"aprs_send_interval\": ";
+    buf += aprs_send_interval; 
+    buf += ", \"aprs_on\": ";
+    buf += aprs_on; 
+    buf += ", \"aprs_user\": ";
+    buf += "\"" + aprs_user + "\""; 
+    buf += ", \"aprs_pass\": ";
+    buf += "\"" + aprs_pass + "\""; 
+    buf += ", \"aprs_lat\": ";
+    buf += "\"" + aprs_lat + "\""; 
+    buf += ", \"aprs_lon\": ";
+    buf += "\"" + aprs_lon + "\"";     
+    buf += "}";   
+    server.send(200, F("application/json"), buf);  
   }else if(server.arg("type") == "devices" && server.arg("rid")=="4"){  // diagnostyka (bez autentykacji)
     String buf = "{\"time\": ";
     buf += millis();
@@ -215,6 +246,28 @@ void save_domo(){
   delay(2000);
 }
 
+void save_aprs(){
+  if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
+  aprs_addr = server.arg("aprs_addr");
+  aprs_port = server.arg("aprs_port").toInt();
+  aprs_send_interval = server.arg("aprs_send_interval").toInt();
+  aprs_on = server.arg("aprs_on").toInt();
+  aprs_user = server.arg("aprs_user");
+  aprs_pass = server.arg("aprs_pass");
+  aprs_lat = server.arg("aprs_lat");
+  aprs_lon = server.arg("aprs_lon");
+  if (LittleFS.begin()){
+      spiffsActive = true;
+  } else {
+      Serial.println("Unable to activate SPIFFS");
+  } 
+  File file = LittleFS.open(aprs_config_file,"w");
+  file.print(String(aprs_addr) + "\n" + String(aprs_port) + "\n" + String(aprs_send_interval) + "\n" + String(aprs_on) + "\n" + String(aprs_user) + "\n" + String(aprs_pass) + "\n" + String(aprs_lat) + "\n" + String(aprs_lon));
+  file.close();
+  server.send(200, F("text/html"), "<html><head><meta http-equiv=\"refresh\" content=\"1; url=/set_aprs\"></head><body><center><br><br><br><b>OK</body></html>");
+  delay(2000);  
+}
+
 void save_wifi(){
   if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
   wifi_ssid = server.arg("wifi_ssid");
@@ -247,6 +300,12 @@ void set_domo(){
   server.send(200, "text/html", HTTP_DOMO);  
 }
 
+// aprs settings
+void set_aprs(){
+  if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
+  server.send(200, "text/html", HTTP_APRS);  
+}
+
 // WiFi settings
 void handle_set_wifi(){
   if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
@@ -263,10 +322,12 @@ void handle_settings(){
 void restServerRouting(){
   server.on("/", handle_Index);
   server.on("/set_domo",set_domo);
+  server.on("/set_aprs",set_aprs);
   server.on("/set_wifi", handle_set_wifi);
   server.on("/settings", handle_settings);
   server.on("/json.htm", getJSON);
   server.on("/save_domo",save_domo);
+  server.on("/save_aprs",save_aprs);
   server.on("/save_wifi",save_wifi);
   server.on("/save_settings",save_settings);
 }
