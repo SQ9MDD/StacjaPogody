@@ -29,7 +29,6 @@ extern int above_sea_lvl;
 extern int direction_raw;
 extern int direction;
 extern int dir_calibration;
-
 extern int domoti_IP_1;
 extern int domoti_IP_2;
 extern int domoti_IP_3;
@@ -39,7 +38,6 @@ extern int send_interval;
 extern boolean domoti_on;
 extern int idx_temp_rh_baro_sensor;
 extern int idx_wind_sensor;
-
 extern String aprs_user;
 extern String aprs_pass;
 extern String aprs_lat;
@@ -219,7 +217,6 @@ void save_settings(){
   }else{
     server.send(200, F("text/html"), "<html><head><meta http-equiv=\"refresh\" content=\"1; url=/settings\"></head><body><center><br><br><br><b>EMPTY PASSWORD</body></html>");
   }
-
 }
 
 void save_domo(){
@@ -233,7 +230,6 @@ void save_domo(){
   domoti_on = server.arg("domoti_on").toInt();
   idx_temp_rh_baro_sensor = server.arg("idx_temp_rh_baro_sensor").toInt();
   idx_wind_sensor = server.arg("idx_wind_sensor").toInt();
-
   if (LittleFS.begin()){
       spiffsActive = true;
   } else {
@@ -294,25 +290,25 @@ void handle_Index(){
   server.send(200, "text/html", HTTP_HTML);
 }
 
-// domoticz settings
+// domoticz settings password protected
 void set_domo(){
   if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
   server.send(200, "text/html", HTTP_DOMO);  
 }
 
-// aprs settings
+// aprs settings password protected
 void set_aprs(){
   if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
   server.send(200, "text/html", HTTP_APRS);  
 }
 
-// WiFi settings
+// WiFi settings password protected
 void handle_set_wifi(){
   if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
   server.send(200, "text/html", HTTP_WIFI);
 }
 
-// global settings
+// global settings password protected
 void handle_settings(){
   if(!server.authenticate("root", www_pass.c_str())) return server.requestAuthentication(DIGEST_AUTH, "login required for user root", "Authentication Failed");
   server.send(200, "text/html", HTTP_SETTINGS);
