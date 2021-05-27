@@ -13,3 +13,11 @@ The whole is easily configurable through a website. The project provides integra
 Strona główna udostępnia dane w postaci odczytów które są dynamicznie aktualizowane.
 
 ![GitHub Logo](/pic/index.jpg)
+
+Urządzenie jest łatwo integrowalne z systemem domoticz.
+
+![GitHub Logo](/pic/domoticz.jpg)
+
+Można także skonfigurować opcje przesyłania danych do systemu CWOP lub APRS.
+
+![GitHub Logo](/pic/aprs.jpg)
