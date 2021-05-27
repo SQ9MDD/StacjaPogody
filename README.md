@@ -24,3 +24,6 @@ Całość jest łatwo konfigurowalna poprzez stronę WWW. Projekt zapewnia integ
 * You can also configure options to send data to a CWOP or APRS system.
 
 ![GitHub Logo](/pic/aprs.jpg)
+
+## Projket w fazie rozwoju, nie oczekuj zbyt wiele...
+## Projket in development, don't expect too much...
