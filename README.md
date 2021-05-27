@@ -2,7 +2,7 @@
 
 ## project on ESP8266
 
-Stacja pogody zrealizowana za pomocą drukarki 3D oraz kilku elementów elektronicznych.
+* Stacja pogody zrealizowana za pomocą drukarki 3D oraz kilku elementów elektronicznych.
 Całość jest łatwo konfigurowalna poprzez stronę WWW. Projekt zapewnia integrację z domoticzem oraz komunikatorem Telegram.
 
 * Weather station realized with 3D printer and some electronic elements.
