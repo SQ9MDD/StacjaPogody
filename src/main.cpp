@@ -237,16 +237,11 @@ String prepare_direction(int input){
 }
 
 String prepare_wind(int input){
-  float wind_mph = float(input) * 3600.0 / 1609.0;
-  if(wind_mph == 0){
-    return("000");
-  }else if(wind_mph <= 9){
-    return("00" + String(wind_mph,0));
-  }else if(wind_mph > 9 && wind_mph < 100){
-    return("0" + String(wind_mph,0));
-  }else{
-    return(String(wind_mph,0));
-  }
+  int wind_mph = input * 3600.0 / 1609.0;
+  char wind_speed_str[4];
+  sprintf(wind_speed_str,"%03d", wind_mph);
+  //Serial.println(wind_speed_str);
+  return(wind_speed_str);
 }
 
 String prepare_temp(float input){
