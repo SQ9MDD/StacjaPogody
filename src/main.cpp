@@ -225,22 +225,15 @@ void send_domoticz(int type_sensor, int idx){
 }
 
 String prepare_direction(int input){
-  if(input == 0){
-    return("000");
-  }else if(input <= 9){
-    return("00" + String(input,0));
-  }else if(input > 9 && input < 100){
-    return("0" + String(input,0));
-  }else{
-    return(String(input,0));
-  }
+  char wind_dir_str[4];
+  sprintf(wind_dir_str,"%03d", input);
+  return(wind_dir_str);
 }
 
 String prepare_wind(int input){
   int wind_mph = input * 3600.0 / 1609.0;
   char wind_speed_str[4];
   sprintf(wind_speed_str,"%03d", wind_mph);
-  //Serial.println(wind_speed_str);
   return(wind_speed_str);
 }
 
