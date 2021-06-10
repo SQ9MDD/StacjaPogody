@@ -30,7 +30,7 @@ The whole is easily configurable through a website. The project provides integra
 
 ![GitHub Logo](/pic/WiFi.JPG)
 
-* Ustawienia główne pozwolą na kalibrację przyrządów.
+* Ustawienia główne pozwalają na kalibrację przyrządów.
 * The main settings will allow you to calibrate the instruments.
 
 ![GitHub Logo](/pic/global-settings.jpg)
