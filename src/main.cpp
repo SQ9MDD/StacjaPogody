@@ -10,8 +10,9 @@
 #include <ESP8266WebServer.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+//#include <BME280I2C.h>
 #include <Wire.h>
-#include <Adafruit_Sensor.h>
+//#include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 #include <EEPROM.h>
 #include <LittleFS.h>
@@ -19,6 +20,7 @@
 
 boolean first_reading = true;
 const byte wind_sensor = D5;
+const byte bme_pwr = D6;
 const byte dire_sensor = A0;
 volatile byte interruptCounter = 0;
 float ms;
@@ -288,6 +290,8 @@ double dewPointFast(double celsius, double humidity){
 }
 
 void read_bme(){
+  digitalWrite(bme_pwr,HIGH);
+  delay(50);
   // test for BME280 sensor
   if (!bme.begin(0x76)){
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
@@ -295,6 +299,7 @@ void read_bme(){
   }
   delay(50);
   float hPa_offset = float(above_sea_lvl) * 0.10933;
+
   if(first_reading){
     sensor_temperature = bme.readTemperature();
     sensor_humidity = bme.readHumidity();
@@ -303,14 +308,18 @@ void read_bme(){
     first_reading = false;    
   } 
     
-  if(bme.readTemperature() <= -40){
-    Serial.println("need to reboot");
-    ESP.restart();
-  }
+  //if(bme.readHumidity() <= 3){
+  //  Serial.println("need to reboot");
+  //  ESP.restart();
+  //}
+
   sensor_temperature = ((sensor_temperature * 9 ) + bme.readTemperature()) / 10;
   sensor_humidity = ((sensor_humidity * 9) + bme.readHumidity()) / 10;
   sensor_dewpoint = dewPointFast(sensor_temperature,sensor_humidity);
   sensor_baro = bme.readPressure() / 100.0F + hPa_offset;
+  
+  //Serial.println(bme.readTemperature());
+  digitalWrite(bme_pwr,LOW);
 }
 
 // licznik obrotów prędkościomierza wiatru
@@ -346,6 +355,8 @@ void setup() {
   Serial.println("booting...");
   pinMode(wind_sensor,INPUT_PULLUP);
   pinMode(dire_sensor,INPUT);
+  pinMode(bme_pwr,OUTPUT);
+  digitalWrite(bme_pwr,LOW);
   attachInterrupt(digitalPinToInterrupt(wind_sensor), wind_tick, FALLING);
   delay(1000); 
   
@@ -376,7 +387,7 @@ void setup() {
   Serial.println("www username is: root");
   Serial.println("www password is: " + String(www_pass));
   Serial.println("system name: " + String(gardner_name) + "\nReady to play...\n");
-  Serial.println("millis;temp;humidity;dewpoint;barometer;wind;gust");
+  //Serial.println("millis;temp;humidity;dewpoint;barometer;wind;gust");
 }
 
 void loop(){
@@ -439,6 +450,11 @@ void loop(){
   if(millis() - last_read > 5000){
     read_bme();
     last_read = millis();
-    Serial.println(String(millis()) + ";" + String(sensor_temperature,1) + ";" + String(sensor_humidity,0) + ";" + String(sensor_dewpoint,1) + ";" + String(sensor_baro,1) + ";" + String(ms) + ";" + String(ms_max));
+  }
+
+  // uggly method for bme280 failure, hope it works
+  unsigned long reset_time = 24 * 60 * 60 * 1000; // 86400000
+  if(millis() >= reset_time){
+    ESP.restart();
   }
 }
