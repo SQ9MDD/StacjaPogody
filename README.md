@@ -25,5 +25,15 @@ The whole is easily configurable through a website. The project provides integra
 
 ![GitHub Logo](/pic/aprs.jpg)
 
+* Urządzenie łatwo podłączysz do swojej sieci WiFi.
+* You can easily connect the device to your WiFi network.
+
+![GitHub Logo](/pic/WiFi.JPG)
+
+* Ustawienia główne pozwolą na kalibrację przyrządów.
+* The main settings will allow you to calibrate the instruments.
+
+![GitHub Logo](/pic/global-settings.jpg)
+
 ## Projket w fazie rozwoju, nie oczekuj zbyt wiele...
 ## Projket in development, don't expect too much...
