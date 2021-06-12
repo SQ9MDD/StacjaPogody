@@ -3,11 +3,11 @@
   #define BUILD_NUMBER "248"
 #endif
 #ifndef VERSION
-  #define VERSION "v.1.2.4 - 20210611"
+  #define VERSION "v.1.2.4 - 20210612"
 #endif
 #ifndef VERSION_SHORT
   #define VERSION_SHORT "v.1.2.4"
 #endif
 #ifndef BUILD_DATE
-  #define BUILD_DATE "20210611"
+  #define BUILD_DATE "20210612"
 #endif

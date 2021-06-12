@@ -17,7 +17,7 @@ const char HTTP_DOMO[] PROGMEM = R"=====(
         .input_long {border-radius: 4px; border: 2px solid #ffffff; width: 450px; height: 30px; font-size: 1.2rem; font-family: "Segoe UI Bold", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; color: #ffffff; background-color: #3b3b3b;}
         .input_short {border-radius: 4px; border: 2px solid #ffffff; width: 37px; height: 30px; font-size: 1.2rem; font-family: "Segoe UI Bold", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; color: #ffffff; background-color: #3b3b3b;}
         .box {border-radius: 4px; width: 32px; height: 32px; border: 2px solid; color: #ffffff; background-color: #3b3b3b;}
-        .submit_btn {border-radius: 4px; border: 2px solid #ffffff; width: 980px; height: 30px; font-size: 1.2rem; font-family: "Segoe UI Bold", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; color: #ffffff; background-color: #3b3b3b;}
+        .submit_btn {border-radius: 4px; border: 2px solid #ffffff; width: 974px; height: 30px; font-size: 1.2rem; font-family: "Segoe UI Bold", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; color: #ffffff; background-color: #3b3b3b;}
     </style>
         <script type="text/javascript">
 
