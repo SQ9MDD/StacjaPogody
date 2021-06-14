@@ -307,11 +307,12 @@ void read_bme(){
     sensor_baro = bme.readPressure() / 100.0F + hPa_offset; 
     first_reading = false;    
   } 
-    
-  //if(bme.readHumidity() <= 3){
-  //  Serial.println("need to reboot");
-  //  ESP.restart();
-  //}
+
+  if(String(sensor_humidity,0) == "nan"){
+    Serial.println("have to reboot");
+    delay(1000);
+    ESP.restart();
+  }
 
   sensor_temperature = ((sensor_temperature * 9 ) + bme.readTemperature()) / 10;
   sensor_humidity = ((sensor_humidity * 9) + bme.readHumidity()) / 10;
