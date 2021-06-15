@@ -187,7 +187,7 @@ void getJSON(){
     message += ", \"title\": ";
     message += "\"" + gardner_name + "\"";  
     message += ", \"version\": ";
-    message += "\"" + String(VERSION_SHORT) + "<br> build: " + String(BUILD_NUMBER) + " - " + String(BUILD_DATE) + "\"";     
+    message += "\"" + String(VERSION_SHORT) + "\"";     
     message += ", \"job_status\": ";
     message += "\"" + sensor_status + "\"";
     message += "}";

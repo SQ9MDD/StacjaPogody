@@ -289,6 +289,27 @@ double dewPointFast(double celsius, double humidity){
   return Td;
 }
 
+double heatIndex(double tempC, double humidity){
+  double TempF = (tempC * 9) / 5 + 32;
+  double c1 = -42.38, c2 = 2.049, c3 = 10.14, c4 = -0.2248, c5= -6.838e-3, c6=-5.482e-2, c7=1.228e-3, c8=8.528e-4, c9=-1.99e-6 ; 
+  double T = TempF;
+  double R = humidity;
+  double T2 = T*T;
+  double R2 = R*R;
+  double TR = T*R;
+  double rv = c1 + c2*T + c3*R + c4*T*R + c5*T2 + c6*R2 + c7*T*TR + c8*TR*R + c9*T2*R2;
+  rv = (rv - 32) * 5 / 9;
+  return(rv);
+}
+
+double windchill(double tempC, double ms){
+  float MPH = ms * 2.23693629;
+  float TempF = (tempC * 9) / 5 + 32;
+  float windchillF = 35.74 + 0.6215 * TempF - 35.75 * pow(MPH, 0.16) + 0.4275 * TempF * pow(MPH, 0.16);
+  sensor_windchill = (windchillF - 32) * 5 / 9;   
+  return(sensor_windchill);
+}
+
 void read_bme(){
   digitalWrite(bme_pwr,HIGH);
   delay(50);
@@ -308,7 +329,7 @@ void read_bme(){
     first_reading = false;    
   } 
 
-  if(String(sensor_humidity,0) == "nan"){
+  if(String(sensor_humidity,0) == "nan" || String(sensor_temperature,1) == "nan" || String(sensor_dewpoint,1) == "nan"){
     Serial.println("have to reboot");
     delay(1000);
     ESP.restart();
@@ -403,7 +424,7 @@ void loop(){
     rpm_avg = (rpm_avg * 5 + rpm) / 6;
     ms = (diameter_mm * 3.14 * rpm_avg) / 1000 / 60;
     ms = ms * kalibracja; 
-    // obliczenie predkosci max
+    // obliczenie predkosci max (GUST)
     // dodaj kazdy pomiar do tablicy odczytaj z tablicy wartość max, 30el w tablicy co 10sec = 5min
     rpm_max_arr[rpm_max_pointer] = rpm;
     rpm_max_pointer++;
@@ -420,12 +441,9 @@ void loop(){
     ms_max = ms_max * kalibracja;
     // Wyliczenie temp odczuwalnej
     if(sensor_temperature < 15.0 && ms > 1.34){
-      float MPH = ms * 2.23693629;
-      float TempF = (sensor_temperature * 9) / 5 + 32;
-      float windchillF = 35.74 + 0.6215 * TempF - 35.75 * pow(MPH, 0.16) + 0.4275 * TempF * pow(MPH, 0.16);
-      sensor_windchill = (windchillF - 32) * 5 / 9;      
+      sensor_windchill = windchill(sensor_temperature, ms);
     }else{
-      sensor_windchill = sensor_temperature;
+      sensor_windchill = heatIndex(sensor_temperature, sensor_humidity);
     }
     // odczytanie kierunku raw z przetwornika
     direction_raw = (direction_raw * 5 + analogRead(dire_sensor)) / 6;
