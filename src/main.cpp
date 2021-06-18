@@ -440,9 +440,11 @@ void loop(){
     ms_max = (diameter_mm * 3.14 * rpm_max) / 1000 / 60;
     ms_max = ms_max * kalibracja;
     // Wyliczenie temp odczuwalnej
+    // ponizej 15 i przy wietrze windchill, powyzej 27C heat index
+    sensor_windchill = sensor_temperature;
     if(sensor_temperature < 15.0 && ms > 1.34){
       sensor_windchill = windchill(sensor_temperature, ms);
-    }else{
+    }else if(sensor_temperature >= 27){
       sensor_windchill = heatIndex(sensor_temperature, sensor_humidity);
     }
     // odczytanie kierunku raw z przetwornika
