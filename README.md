@@ -8,7 +8,7 @@ Całość jest łatwo konfigurowalna poprzez stronę WWW. Projekt zapewnia integ
 * Weather station realized with 3D printer and some electronic elements.
 The whole is easily configurable through a website. The project provides integration with domoticz and APRS.
 
-![GitHub Logo](/pic/photo_2021-05-16_18-42-17.jpg)
+![GitHub Logo](/pic/photo_2021-06-27_17-55-55.jpg)
 
 * Strona główna udostępnia dane w postaci odczytów które są dynamicznie aktualizowane.
 * The home page provides data in the form of readings that are dynamically updated.
