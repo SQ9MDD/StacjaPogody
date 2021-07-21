@@ -34,9 +34,11 @@ float diameter_mm = 216;    // srednica anemometru w mm
 float kalibracja = 2.9;     // kalibracja miernika 
 int direction_raw = 0;
 int direction = 0;
+int direction_abs = 0;
 int dir_calibration = 0;
 unsigned long last_read = 0;
 unsigned long last_rpm_read = 0;
+unsigned long last_direction_read = 0;
 
 // zmienne integracji z domoticzem
 int domoti_IP_1 = 192;
@@ -415,6 +417,17 @@ void setup() {
 void loop(){
   ArduinoOTA.handle();
   server.handleClient();
+
+  if(millis() - last_direction_read > 500){
+    last_direction_read = millis();
+    int dir_raw = analogRead(dire_sensor);
+    // odczytanie kierunku raw z przetwornika
+    if(dir_raw > 50){
+      direction_raw = (direction_raw * 5 + dir_raw) / 6;
+      direction_abs = calculate_abs_degree(direction_raw, 114, 981, 0);
+      direction = calculate_rel_degree(direction_abs, dir_calibration);
+    }
+  }
   // compute wind speed, gust and wind chill
   if(millis() - last_rpm_read > 10000){
     last_rpm_read = millis();
@@ -446,11 +459,7 @@ void loop(){
       sensor_windchill = windchill(sensor_temperature, ms);
     }else if(sensor_temperature >= 27){
       sensor_windchill = heatIndex(sensor_temperature, sensor_humidity);
-    }
-    // odczytanie kierunku raw z przetwornika
-    direction_raw = (direction_raw * 5 + analogRead(dire_sensor)) / 6;
-    int direction_abs = calculate_abs_degree(direction_raw, 334, 921, 0);
-    direction = calculate_rel_degree(direction_abs, dir_calibration);
+    }    
   }
 
   // domoticz integration
