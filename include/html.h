@@ -132,24 +132,6 @@ const char HTTP_HTML[] PROGMEM = R"=====(
                     <big class=big> <b id="DewPoint">wait...</b><b>&deg;C</b></big><br><br>
                 </div>               
             </div>
-            <!--div class="grid-container quarters">
-                <div>
-                    <label for="Wind">Prędkość wiatru<br><small>(średnia z ostatniej minuty)</small></label><br>
-                    <big class=big><b id="Wind">wait...</b><b> m/s</b></big><br><big class=med>(<b id="WindKMH">wait...</b><b> km/h</b>)</big>
-                </div> 
-                <div>
-                    <label for="Gust">Poryw wiatru<br><small>(maximum z ostatnich 5 minut)</small></label><br>
-                    <big class=big><b id="Gust">wait...</b><b> m/s</b></big><br><big class=med>(<b id="GustKMH">wait...</b><b> km/h</b>)</big>
-                </div>  
-                <div>
-                    <label for="direction">Kierunek wiatru</label><br><br>
-                    <big class=big><b id="direction">wait...</b><b>&deg;</b></big>
-                </div>     
-                <div>
-                    <label for="sensor_windchill">Temperatura odczuwalna</label><br><br>
-                    <big class=big><b id="sensor_windchill">wait...</b><b>&deg;C</b></big>
-                </div>                                                          
-            </div-->
             <div class="grid-container full"><b id="job_status">Analizuję dane...</b></div>
         </section>
         <section>
