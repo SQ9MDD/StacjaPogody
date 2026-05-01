@@ -22,6 +22,9 @@ extern float sensor_temperature;
 extern float sensor_humidity;
 extern float sensor_dewpoint;
 extern float sensor_baro;
+extern int sensor_uv_raw;
+extern float sensor_uv_voltage;
+extern float sensor_uv_index;
 extern int above_sea_lvl;
 extern int domoti_IP_1;
 extern int domoti_IP_2;
@@ -47,25 +50,27 @@ String humidity_status(int humidity){
 }
 
 bool send_domoticz_getdevices_by_rid(){
-  if(server.arg("type") != "command" || server.arg("param") != "getdevices"){
+  if(server.arg("type") != "devices"){
     return false;
   }
 
   String rid = server.arg("rid");
+  if(rid != "24" && rid != "25" && rid != "26" && rid != "27" && rid != "28"){
+    return false;
+  }
   String result;
 
-  if(rid == "1"){
-    result = "{\"idx\":\"1\",\"Name\":\"Temperature\",\"Type\":\"Temp\",\"Temp\":" + String(sensor_temperature,1) + ",\"Data\":\"" + String(sensor_temperature,1) + " C\"}";
-  }else if(rid == "2"){
+  if(rid == "24"){
+    result = "{\"idx\":\"24\",\"Name\":\"Temperature\",\"Type\":\"Temp\",\"Temp\":" + String(sensor_temperature,1) + ",\"Data\":\"" + String(sensor_temperature,1) + " C\"}";
+  }else if(rid == "25"){
     int hum = int(sensor_humidity + 0.5);
-    result = "{\"idx\":\"2\",\"Name\":\"Humidity\",\"Type\":\"Humidity\",\"Humidity\":" + String(hum) + ",\"HumidityStatus\":\"" + humidity_status(hum) + "\",\"Data\":\"" + String(hum) + " %\"}";
-  }else if(rid == "3"){
-    result = "{\"idx\":\"3\",\"Name\":\"Pressure\",\"Type\":\"Barometer\",\"Barometer\":" + String(sensor_baro,1) + ",\"Data\":\"" + String(sensor_baro,1) + " hPa\"}";
-  }else if(rid == "4"){
-    result = "{\"idx\":\"4\",\"Name\":\"Dew Point\",\"Type\":\"Temp\",\"DewPoint\":" + String(sensor_dewpoint,1) + ",\"Data\":\"" + String(sensor_dewpoint,1) + " C\"}";
-  }else{
-    server.send(200, F("application/json"), "{\"status\":\"ERR\",\"title\":\"Devices\",\"message\":\"Unknown rid\",\"result\":[]}");
-    return true;
+    result = "{\"idx\":\"25\",\"Name\":\"Humidity\",\"Type\":\"Humidity\",\"Humidity\":" + String(hum) + ",\"HumidityStatus\":\"" + humidity_status(hum) + "\",\"Data\":\"" + String(hum) + " %\"}";
+  }else if(rid == "26"){
+    result = "{\"idx\":\"26\",\"Name\":\"Pressure\",\"Type\":\"Barometer\",\"Barometer\":" + String(sensor_baro,1) + ",\"Data\":\"" + String(sensor_baro,1) + " hPa\"}";
+  }else if(rid == "27"){
+    result = "{\"idx\":\"27\",\"Name\":\"Dew Point\",\"Type\":\"Temp\",\"DewPoint\":" + String(sensor_dewpoint,1) + ",\"Data\":\"" + String(sensor_dewpoint,1) + " C\"}";
+  }else if(rid == "28"){
+    result = "{\"idx\":\"28\",\"Name\":\"UV Index\",\"Type\":\"UV\",\"UVI\":" + String(sensor_uv_index,1) + ",\"Data\":\"" + String(sensor_uv_index,1) + " UVI\"}";
   }
 
   String buf = "{\"status\":\"OK\",\"title\":\"Devices\",\"ActTime\":" + String(millis()) + ",\"ServerTime\":\"\",\"result\":[" + result + "]}";
@@ -101,6 +106,9 @@ void getJSON(){
     buf += ", \"Humidity\": " + String(sensor_humidity);
     buf += ", \"DewPoint\": " + String(sensor_dewpoint);
     buf += ", \"Barometer\": " + String(sensor_baro);
+    buf += ", \"uv_index\": " + String(sensor_uv_index,1);
+    buf += ", \"uv_voltage\": " + String(sensor_uv_voltage,3);
+    buf += ", \"uv_raw\": " + String(sensor_uv_raw);
     buf += "}]}";
     server.send(200, F("application/json"), buf);
   }else if(server.arg("type") == "devices" && server.arg("rid")=="1"){
@@ -110,6 +118,9 @@ void getJSON(){
     buf += ", \"Humidity\": \"" + String(sensor_humidity,0) + "\"";
     buf += ", \"DewPoint\": \"" + String(sensor_dewpoint,1) + "\"";
     buf += ", \"Barometer\": \"" + String(sensor_baro,1) + "\"";
+    buf += ", \"uv_index\": \"" + String(sensor_uv_index,1) + "\"";
+    buf += ", \"uv_voltage\": \"" + String(sensor_uv_voltage,3) + "\"";
+    buf += ", \"uv_raw\": \"" + String(sensor_uv_raw) + "\"";
     buf += ", \"job_status\": \"" + sensor_status + "\"";
     buf += "}";
     server.send(200, F("application/json"), buf);
@@ -348,5 +359,8 @@ void connect_to_wifi(){
     Serial.println(WiFi.localIP());
   }
 }
+
+
+
 
 

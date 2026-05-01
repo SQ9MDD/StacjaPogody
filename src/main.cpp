@@ -20,6 +20,10 @@
 
 boolean first_reading = true;
 const byte bme_pwr = D6;
+const byte uv_sensor = A0;
+const float ADC_REF_VOLTAGE = 3.2;   // Wemos D1 mini ma zwykle dzielnik na A0 (0-3.2V). Dla czystego ADC 0-1.0V zmienic te stala.
+const int ADC_MAX_VALUE = 1023;
+const float UV_INDEX_MAX = 15.0;
 float diameter_mm = 216;
 float kalibracja = 2.9;
 unsigned long last_read = 0;
@@ -62,6 +66,9 @@ float sensor_temperature = 0.0;
 float sensor_humidity = 0.0;
 float sensor_dewpoint = 0.0;
 float sensor_baro = 0.0;
+int sensor_uv_raw = 0;
+float sensor_uv_voltage = 0.0;
+float sensor_uv_index = 0.0;
 int above_sea_lvl = 0;
 
 Adafruit_BME280 bme;              // ESP8266 connect 
@@ -244,6 +251,31 @@ double dewPointFast(double celsius, double humidity){
   return Td;
 }
 
+
+void read_uv(){
+  // Minimalne usrednianie kilku probek bez istotnego blokowania petli.
+  int samples = 4;
+  int raw_sum = 0;
+  for(int i = 0; i < samples; i++){
+    raw_sum += analogRead(uv_sensor);
+    delayMicroseconds(200);
+  }
+
+  int raw = raw_sum / samples;
+  if(raw < 0) raw = 0;
+  if(raw > ADC_MAX_VALUE) raw = ADC_MAX_VALUE;
+
+  float voltage = (float(raw) * ADC_REF_VOLTAGE) / float(ADC_MAX_VALUE);
+  float uv_index = voltage * 10.0;
+
+  if(uv_index < 0.0) uv_index = 0.0;
+  if(uv_index > UV_INDEX_MAX) uv_index = UV_INDEX_MAX;
+
+  // Wygladzanie jak dla innych parametrow metodyka 9:1.
+  sensor_uv_raw = (sensor_uv_raw * 9 + raw) / 10;
+  sensor_uv_voltage = (sensor_uv_voltage * 9.0 + voltage) / 10.0;
+  sensor_uv_index = (sensor_uv_index * 9.0 + uv_index) / 10.0;
+}
 void read_bme(){
   digitalWrite(bme_pwr,HIGH);
   delay(50);
@@ -330,6 +362,7 @@ void loop(){
 
   if(millis() - last_read > 5000){
     read_bme();
+    read_uv();
     last_read = millis();
   }
 

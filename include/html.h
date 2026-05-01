@@ -126,11 +126,15 @@ const char HTTP_HTML[] PROGMEM = R"=====(
                 <div>
                     <label for="Barometer">Ciśnienie</label><br>
                     <big class=big> <b id="Barometer">wait...</b><b>hPa</b></big><br><br>
-                </div>                 
+                </div>
                 <div>
                     <label for="DewPoint">Punkt Rosy</label><br>
                     <big class=big> <b id="DewPoint">wait...</b><b>&deg;C</b></big><br><br>
-                </div>               
+                </div>
+                <div>
+                    <label for="uv_index">Indeks UV</label><br>
+                    <big class=big> <b id="uv_index">wait...</b></big><br><br>
+                </div>
             </div>
             <div class="grid-container full"><b id="job_status">Analizuję dane...</b></div>
         </section>
@@ -145,4 +149,5 @@ const char HTTP_HTML[] PROGMEM = R"=====(
     </center>
     </body>
     </html>
+
 )=====";
